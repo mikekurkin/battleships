@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { commands } from './interface';
 import { SocketCommand } from './types';
+import { users } from './users';
 
 export const wsServer = {
   start(port: number) {
@@ -12,9 +13,12 @@ export const wsServer = {
         const request: SocketCommand = JSON.parse(data.toString());
         const handler = commands[request.type];
         if (handler) {
-          const response = handler(request.data);
-          ws.send(JSON.stringify(response));
+          handler(JSON.parse(request.data), ws);
         }
+      });
+
+      ws.on('close', () => {
+        users.removeSocket(ws);
       });
     });
   },

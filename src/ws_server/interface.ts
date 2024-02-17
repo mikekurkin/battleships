@@ -11,5 +11,5 @@ export const commands: { [cmd: string]: CommandHandler } = {
 };
 
 export const formResponse = (type: string, data: Object): SocketCommand => {
-  return { type, data, id: 0 };
+  return { type, data: JSON.stringify(data), id: 0 };
 };
