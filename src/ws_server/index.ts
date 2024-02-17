@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import { commands } from './interface';
+import { commands } from './commands';
 import { SocketCommand } from './types';
 import { users } from './users';
 
