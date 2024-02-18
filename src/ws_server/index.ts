@@ -13,7 +13,11 @@ export const wsServer = {
         const request: SocketCommand = JSON.parse(data.toString());
         const handler = commands[request.type];
         if (handler) {
-          handler(JSON.parse(request.data), ws);
+          let data = {};
+          try {
+            data = JSON.parse(request.data);
+          } catch {}
+          handler(data, ws);
         }
       });
 

@@ -41,6 +41,16 @@ class UsersDB {
     socketsToSend.forEach((socket) => socket.send(data));
   }
 
+  findIdBySocket(socket: WebSocket) {
+    return this.userSockets.find((us) => us.socket == socket)?.id;
+  }
+
+  getById(id: number) {
+    const user = Object.values(this.entries).find((user) => user.index == id);
+    if (!user) return undefined;
+    return { name: user.name, index: user.index };
+  }
+
   async reg(username: string, password: string, socket: WebSocket) {
     if (this.entries[username]) {
       if (
