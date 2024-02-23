@@ -26,21 +26,28 @@ const create_room = (_: {}, socket: WebSocket) => {
 const add_user_to_room = (data: { indexRoom: number }, socket: WebSocket) => {
   const userId = users.findIdBySocket(socket);
   const game = games.getById(data.indexRoom);
+  if (game === undefined) return;
   if (userId && game && !game.playerIds.includes(userId)) {
     game.addPlayer(userId);
-    game?.playerIds.forEach((id) => {
-      users.sendTo(
-        id,
-        JSON.stringify(
-          formResponse('create_game', {
-            idGame: game.id,
-            idPlayer: userId,
-          }),
-        ),
-      );
-    });
+    create_game(data.indexRoom);
   }
   update_room();
+};
+
+const create_game = (roomId: number) => {
+  const game = games.getById(roomId);
+  if (game === undefined) return;
+  game.playerIds.forEach((id) => {
+    users.sendTo(
+      id,
+      JSON.stringify(
+        formResponse('create_game', {
+          idGame: game.id,
+          idPlayer: id,
+        }),
+      ),
+    );
+  });
 };
 
 const update_room = () => {
