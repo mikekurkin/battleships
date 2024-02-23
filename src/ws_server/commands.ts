@@ -91,11 +91,36 @@ const turn = (gameId: number, currentAttackerId?: number) => {
   });
 };
 
+const attack = (
+  data: { gameId: number; x: number; y: number; indexPlayer: number },
+  _: WebSocket,
+) => {
+  const game = games.getById(data.gameId);
+  if (game === undefined) return;
+  const status = game.attack(data.indexPlayer, { ...data });
+  if (status === null) return;
+  game.playerIds.forEach((id) => {
+    users.sendTo(
+      id,
+      formResponse('attack', {
+        position: { x: data.x, y: data.y },
+        currentPlayer: data.indexPlayer,
+        status,
+      }),
+    );
+  });
+  // TODO: if (status === 'killed') {attack neighbours}
+  turn(
+    data.gameId,
+    status == 'miss' ? game.opponent(data.indexPlayer) : data.indexPlayer,
+  );
+};
+
 export const commands: { [cmd: string]: CommandHandler } = {
   reg,
   create_room,
   add_user_to_room,
   add_ships,
-  //   attack: () => {},
+  attack,
   //   randomAttack: () => {},
 };
