@@ -7,3 +7,10 @@ export type SocketCommand = {
 };
 
 export type CommandHandler = (data: any, socket: WebSocket) => void;
+
+export type ShipsData = {
+  position: { x: number; y: number };
+  direction: boolean;
+  length: number;
+  type: 'small' | 'medium' | 'large' | 'huge';
+}[];

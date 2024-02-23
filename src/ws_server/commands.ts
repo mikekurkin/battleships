@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { CommandHandler, SocketCommand } from './types';
+import { CommandHandler, ShipsData, SocketCommand } from './types';
 
 import { games } from './games';
 import { users } from './users';
@@ -54,11 +54,36 @@ const update_room = () => {
   users.sendTo('all', JSON.stringify(formResponse('update_room', games.rooms)));
 };
 
+const add_ships = (
+  data: { gameId: number; ships: ShipsData; indexPlayer: number },
+  _: WebSocket,
+) => {
+  const game = games.getById(data.gameId);
+  if (game === undefined) return;
+  game.placeShips(data.indexPlayer, data.ships);
+  console.log(Object.keys(game.fields).length);
+  if (Object.keys(game.fields).length >= 2) {
+    start_game(data.gameId);
+  }
+};
+
+const start_game = (gameId: number) => {
+  const game = games.getById(gameId);
+  if (game === undefined) return;
+  game.playerIds.forEach((playerId) => {
+    const data = {
+      ships: game.ships[playerId],
+      currentPlayerIndex: playerId,
+    };
+    users.sendTo(playerId, JSON.stringify(formResponse('start_game', data)));
+  });
+};
+
 export const commands: { [cmd: string]: CommandHandler } = {
   reg,
   create_room,
   add_user_to_room,
-  //   add_ships: () => {},
+  add_ships,
   //   attack: () => {},
   //   randomAttack: () => {},
 };
