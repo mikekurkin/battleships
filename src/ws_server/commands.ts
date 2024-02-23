@@ -1,11 +1,11 @@
 import { WebSocket } from 'ws';
-import { CommandHandler, ShipsData, SocketCommand } from './types';
+import { CommandHandler, ShipsData } from './types';
 
 import { games } from './games';
 import { users } from './users';
 
-const formResponse = (type: string, data: Object): SocketCommand => {
-  return { type, data: JSON.stringify(data), id: 0 };
+const formResponse = (type: string, data: Object) => {
+  return JSON.stringify({ type, data: JSON.stringify(data), id: 0 });
 };
 
 const reg = async (
@@ -13,7 +13,7 @@ const reg = async (
   socket: WebSocket,
 ) => {
   const responseData = await users.reg(data.name, data.password, socket);
-  socket.send(JSON.stringify(formResponse('reg', responseData)));
+  socket.send(formResponse('reg', responseData));
   update_room();
 };
 
@@ -40,18 +40,16 @@ const create_game = (roomId: number) => {
   game.playerIds.forEach((id) => {
     users.sendTo(
       id,
-      JSON.stringify(
-        formResponse('create_game', {
-          idGame: game.id,
-          idPlayer: id,
-        }),
-      ),
+      formResponse('create_game', {
+        idGame: game.id,
+        idPlayer: id,
+      }),
     );
   });
 };
 
 const update_room = () => {
-  users.sendTo('all', JSON.stringify(formResponse('update_room', games.rooms)));
+  users.sendTo('all', formResponse('update_room', games.rooms));
 };
 
 const add_ships = (
@@ -75,7 +73,21 @@ const start_game = (gameId: number) => {
       ships: game.ships[playerId],
       currentPlayerIndex: playerId,
     };
-    users.sendTo(playerId, JSON.stringify(formResponse('start_game', data)));
+    users.sendTo(playerId, formResponse('start_game', data));
+  });
+  turn(gameId);
+};
+
+const turn = (gameId: number, currentAttackerId?: number) => {
+  const game = games.getById(gameId);
+  if (game === undefined || game.playerIds.length < 2) return;
+  if (currentAttackerId === undefined)
+    currentAttackerId = game.playerIds[Math.floor(Math.random() * 2)]!;
+  game.playerIds.forEach((playerId) => {
+    const data = {
+      currentPlayer: currentAttackerId,
+    };
+    users.sendTo(playerId, formResponse('turn', data));
   });
 };
 
