@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { CommandHandler, ShipsData } from './types';
+import { CommandHandler, ShipData } from './types';
 
 import { games } from './games';
 import { users } from './users';
@@ -53,13 +53,12 @@ const update_room = () => {
 };
 
 const add_ships = (
-  data: { gameId: number; ships: ShipsData; indexPlayer: number },
+  data: { gameId: number; ships: ShipData[]; indexPlayer: number },
   _: WebSocket,
 ) => {
   const game = games.getById(data.gameId);
   if (game === undefined) return;
   game.placeShips(data.indexPlayer, data.ships);
-  console.log(Object.keys(game.fields).length);
   if (Object.keys(game.fields).length >= 2) {
     start_game(data.gameId);
   }
@@ -95,19 +94,19 @@ const attack = (
 ) => {
   const game = games.getById(data.gameId);
   if (game === undefined) return;
-  const status = game.attack(data.indexPlayer, { ...data });
+  const status = game.attack(data.indexPlayer, { x: data.x, y: data.y });
   if (status === null) return;
-  game.playerIds.forEach((id) => {
-    users.sendTo(
-      id,
-      formResponse('attack', {
-        position: { x: data.x, y: data.y },
-        currentPlayer: data.indexPlayer,
-        status,
-      }),
-    );
+  status.forEach((cell) => {
+    game.playerIds.forEach((id) => {
+      users.sendTo(
+        id,
+        formResponse('attack', {
+          ...cell,
+          currentPlayer: data.indexPlayer,
+        }),
+      );
+    });
   });
-  // TODO: if (status === 'killed') {attack neighbours}
   turn(data.gameId);
 };
 

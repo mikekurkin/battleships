@@ -8,9 +8,9 @@ export type SocketCommand = {
 
 export type CommandHandler = (data: any, socket: WebSocket) => void;
 
-export type ShipsData = {
+export type ShipData = {
   position: { x: number; y: number };
-  direction: boolean;
+  direction: boolean; // true for vertical, false for horizontal
   length: number;
   type: 'small' | 'medium' | 'large' | 'huge';
-}[];
+};

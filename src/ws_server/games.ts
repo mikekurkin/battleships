@@ -1,4 +1,5 @@
-import { ShipsData } from './types';
+import { shipNeighborCells } from './helpers';
+import { ShipData } from './types';
 import { users } from './users';
 
 class BattleshipsGame {
@@ -54,19 +55,24 @@ class BattleshipsGame {
     return fs;
   }
   ships: {
-    [playerId: string]: ShipsData;
+    [playerId: string]: ShipData[];
   };
   attacks: {
     [playerId: string]: { x: number; y: number }[];
   };
-  placeShips(playerId: number, ships: ShipsData) {
+  placeShips(playerId: number, ships: ShipData[]) {
     this.ships[playerId] = ships;
     // console.table(this.fields[playerId]);
   }
   attack(
     playerId: number,
     position: { x: number; y: number },
-  ): 'miss' | 'killed' | 'shot' | null {
+  ):
+    | {
+        position: { x: number; y: number };
+        status: 'miss' | 'killed' | 'shot';
+      }[]
+    | null {
     if (playerId != this.attackerId) return null;
     if (!this.attacks[playerId]) this.attacks[playerId] = [];
     if (this.attacks[playerId]!.includes(position)) return null;
@@ -77,13 +83,26 @@ class BattleshipsGame {
     this.attacks[playerId]!.push(position);
     const opponentFieldAfter = this.fields[opponentId];
     // console.table(opponentFieldAfter);
-    if (shotShipId == null) {
+    let shotShip: ShipData | undefined;
+    try {
+      shotShip = this.ships[opponentId]![parseInt(shotShipId!)]!;
+    } catch {}
+    if (shotShipId == null || shotShip == null) {
       this.attackerId = opponentId;
-      return 'miss';
+      return [{ position, status: 'miss' }];
     }
-    if (opponentFieldAfter && !opponentFieldAfter.flat().includes(shotShipId))
-      return 'killed';
-    return 'shot';
+    if (opponentFieldAfter && opponentFieldAfter.flat().includes(shotShipId))
+      return [{ position, status: 'shot' }];
+
+    const misses = shipNeighborCells(shotShip)
+      .map((cell) => {
+        this.attackerId = playerId;
+        return this.attack(playerId, cell) ?? [];
+      })
+      .flat();
+
+    this.attackerId = playerId;
+    return [{ position, status: 'killed' }, ...misses];
   }
 }
 
