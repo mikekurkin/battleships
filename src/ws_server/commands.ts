@@ -26,8 +26,8 @@ const create_room = (_: {}, socket: WebSocket) => {
 const add_user_to_room = (data: { indexRoom: number }, socket: WebSocket) => {
   const userId = users.findIdBySocket(socket);
   const game = games.getById(data.indexRoom);
-  if (game === undefined) return;
-  if (userId && game && !game.playerIds.includes(userId)) {
+  if (game === undefined || userId === undefined) return;
+  if (!game.playerIds.includes(userId)) {
     game.addPlayer(userId);
     create_game(data.indexRoom);
   }
