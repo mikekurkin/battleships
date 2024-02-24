@@ -45,7 +45,7 @@ class BattleshipsGame {
     Object.entries(this.attacks).forEach(([playerId, attacks]) => {
       attacks.forEach((attack) => {
         const opponent = this.opponent(playerId);
-        if (opponent) {
+        if (!(opponent === undefined)) {
           if (fs[opponent]?.[attack.y]?.[attack.x] !== undefined)
             fs[opponent]![attack.y]![attack.x] =
               fs[opponent]![attack.y]![attack.x] === null ? 'o' : 'x';
@@ -77,7 +77,7 @@ class BattleshipsGame {
     if (!this.attacks[playerId]) this.attacks[playerId] = [];
     if (this.attacks[playerId]!.includes(position)) return null;
     const opponentId = this.opponent(playerId);
-    if (!opponentId) return null;
+    if (opponentId === undefined) return null;
     const opponentFieldBefore = this.fields[opponentId];
     const shotShipId = opponentFieldBefore?.[position.y]?.[position.x];
     this.attacks[playerId]!.push(position);
