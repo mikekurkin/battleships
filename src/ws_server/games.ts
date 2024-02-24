@@ -43,7 +43,8 @@ class BattleshipsGame {
       });
     });
     Object.entries(this.attacks).forEach(([playerId, attacks]) => {
-      attacks.forEach((attack) => {
+      attacks.forEach((attackString) => {
+        const attack = JSON.parse(attackString);
         const opponent = this.opponent(playerId);
         if (!(opponent === undefined)) {
           if (fs[opponent]?.[attack.y]?.[attack.x] !== undefined)
@@ -54,15 +55,54 @@ class BattleshipsGame {
     });
     return fs;
   }
+  get winnerId(): number | null {
+    const winnerId = Object.entries(this.fields)
+      .map(([playerId, field]) => {
+        const fieldSet = new Set(field.flat());
+        if (
+          fieldSet.size == 3 &&
+          ['x', 'o', null].every((e) => fieldSet.has(e))
+        ) {
+          return this.opponent(playerId);
+        } else return null;
+      })
+      .filter((e) => e != null)
+      .pop();
+    if (winnerId != undefined) return winnerId;
+    return null;
+  }
+  get isFinished() {
+    return this.winnerId !== null;
+  }
+  getUnhitCell(playerId: number): { x: number; y: number } | null {
+    const unhitCells = Array.from(Array(10), () => Array(10).fill(null))
+      .map((row, y) =>
+        row.map((_, x) => {
+          return JSON.stringify({ x, y });
+        }),
+      )
+      .flat()
+      .filter((cell) =>
+        this.attacks[playerId] === undefined
+          ? true
+          : !this.attacks[playerId]!.includes(cell),
+      );
+    const chosenCell =
+      unhitCells[Math.floor(Math.random() * unhitCells.length)];
+    try {
+      return JSON.parse(chosenCell!);
+    } catch {
+      return null;
+    }
+  }
   ships: {
     [playerId: string]: ShipData[];
   };
-  attacks: {
-    [playerId: string]: { x: number; y: number }[];
+  private attacks: {
+    [playerId: string]: string[]; //stringified { x: number; y: number }
   };
   placeShips(playerId: number, ships: ShipData[]) {
     this.ships[playerId] = ships;
-    // console.table(this.fields[playerId]);
   }
   attack(
     playerId: number,
@@ -75,14 +115,13 @@ class BattleshipsGame {
     | null {
     if (playerId != this.attackerId) return null;
     if (!this.attacks[playerId]) this.attacks[playerId] = [];
-    if (this.attacks[playerId]!.includes(position)) return null;
+    if (this.attacks[playerId]!.includes(JSON.stringify(position))) return null;
     const opponentId = this.opponent(playerId);
     if (opponentId === undefined) return null;
     const opponentFieldBefore = this.fields[opponentId];
     const shotShipId = opponentFieldBefore?.[position.y]?.[position.x];
-    this.attacks[playerId]!.push(position);
+    this.attacks[playerId]!.push(JSON.stringify(position));
     const opponentFieldAfter = this.fields[opponentId];
-    // console.table(opponentFieldAfter);
     let shotShip: ShipData | undefined;
     try {
       shotShip = this.ships[opponentId]![parseInt(shotShipId!)]!;
@@ -127,6 +166,12 @@ class GamesDB {
 
   getById(id: number) {
     return this.entries.find((game) => game.id == id);
+  }
+
+  get winners() {
+    return this.entries.flatMap((game) =>
+      game.winnerId == null ? [] : [game.winnerId],
+    );
   }
 }
 

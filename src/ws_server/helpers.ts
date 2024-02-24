@@ -30,3 +30,10 @@ export const shipNeighborCells = (
       0 <= neighbor.x && neighbor.x <= 9 && 0 <= neighbor.y && neighbor.y <= 9,
   );
 };
+
+export function countOccurences<T>(arr: T[]) {
+  return arr.reduce(
+    (acc, cur) => acc.set(cur, (acc.get(cur) ?? 0) + 1),
+    new Map<T, number>(),
+  );
+}

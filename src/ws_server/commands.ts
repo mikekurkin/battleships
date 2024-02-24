@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { CommandHandler, ShipData } from './types';
 
 import { games } from './games';
+import { countOccurences } from './helpers';
 import { users } from './users';
 
 const formResponse = (type: string, data: Object) => {
@@ -107,7 +108,52 @@ const attack = (
       );
     });
   });
+  if (game.isFinished) finish(data.gameId);
   turn(data.gameId);
+};
+
+const randomAttack = (
+  data: { gameId: number; indexPlayer: number },
+  socket: WebSocket,
+) => {
+  const game = games.getById(data.gameId);
+  if (game === undefined) return;
+  const chosenCell = game.getUnhitCell(data.indexPlayer);
+  if (!chosenCell) return;
+  attack(
+    {
+      x: chosenCell.x,
+      y: chosenCell.y,
+      ...data,
+    },
+    socket,
+  );
+};
+
+const finish = (gameId: number) => {
+  const game = games.getById(gameId);
+  if (game === undefined) return;
+  game.playerIds.forEach((id) => {
+    users.sendTo(
+      id,
+      formResponse('finish', {
+        winPlayer: game.winnerId,
+      }),
+    );
+  });
+  update_winners();
+};
+
+const update_winners = () => {
+  users.sendTo(
+    'all',
+    formResponse(
+      'update_winners',
+      Array.from(countOccurences(games.winners)).map(([id, count]) => {
+        return { name: users.getById(id)?.name, wins: count };
+      }),
+    ),
+  );
 };
 
 export const commands: { [cmd: string]: CommandHandler } = {
@@ -116,5 +162,5 @@ export const commands: { [cmd: string]: CommandHandler } = {
   add_user_to_room,
   add_ships,
   attack,
-  //   randomAttack: () => {},
+  randomAttack,
 };
