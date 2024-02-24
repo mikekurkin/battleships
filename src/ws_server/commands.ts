@@ -16,6 +16,7 @@ const reg = async (
   const responseData = await users.reg(data.name, data.password, socket);
   socket.send(formResponse('reg', responseData));
   update_room();
+  update_winners(responseData.index);
 };
 
 const create_room = (_: {}, socket: WebSocket) => {
@@ -49,8 +50,8 @@ const create_game = (roomId: number) => {
   });
 };
 
-const update_room = () => {
-  users.sendTo('all', formResponse('update_room', games.rooms));
+const update_room = (playerId?: number) => {
+  users.sendTo(playerId ?? 'all', formResponse('update_room', games.rooms));
 };
 
 const add_ships = (
@@ -144,9 +145,9 @@ const finish = (gameId: number) => {
   update_winners();
 };
 
-const update_winners = () => {
+const update_winners = (playerId?: number) => {
   users.sendTo(
-    'all',
+    playerId ?? 'all',
     formResponse(
       'update_winners',
       Array.from(countOccurences(games.winners)).map(([id, count]) => {
