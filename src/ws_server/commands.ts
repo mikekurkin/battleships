@@ -78,14 +78,12 @@ const start_game = (gameId: number) => {
   turn(gameId);
 };
 
-const turn = (gameId: number, currentAttackerId?: number) => {
+const turn = (gameId: number) => {
   const game = games.getById(gameId);
   if (game === undefined || game.playerIds.length < 2) return;
-  if (currentAttackerId === undefined)
-    currentAttackerId = game.playerIds[Math.floor(Math.random() * 2)]!;
   game.playerIds.forEach((playerId) => {
     const data = {
-      currentPlayer: currentAttackerId,
+      currentPlayer: game.attackerId,
     };
     users.sendTo(playerId, formResponse('turn', data));
   });
@@ -110,10 +108,7 @@ const attack = (
     );
   });
   // TODO: if (status === 'killed') {attack neighbours}
-  turn(
-    data.gameId,
-    status == 'miss' ? game.opponent(data.indexPlayer) : data.indexPlayer,
-  );
+  turn(data.gameId);
 };
 
 export const commands: { [cmd: string]: CommandHandler } = {

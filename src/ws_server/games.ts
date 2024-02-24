@@ -7,8 +7,10 @@ class BattleshipsGame {
   get isAvailable() {
     return this.playerIds.length < 2;
   }
+  attackerId: number;
   addPlayer(playerId: number) {
     this.playerIds.push(playerId);
+    this.attackerId = this.playerIds[Math.floor(Math.random() * 2)]!;
   }
   constructor(gameId: number, initiatorId: number) {
     this.id = gameId;
@@ -65,14 +67,20 @@ class BattleshipsGame {
     playerId: number,
     position: { x: number; y: number },
   ): 'miss' | 'killed' | 'shot' | null {
+    if (playerId != this.attackerId) return null;
     if (!this.attacks[playerId]) this.attacks[playerId] = [];
     if (this.attacks[playerId]!.includes(position)) return null;
-    const opponentFieldBefore = this.fields[this.opponent(playerId) ?? -1];
+    const opponentId = this.opponent(playerId);
+    if (!opponentId) return null;
+    const opponentFieldBefore = this.fields[opponentId];
     const shotShipId = opponentFieldBefore?.[position.y]?.[position.x];
     this.attacks[playerId]!.push(position);
-    const opponentFieldAfter = this.fields[this.opponent(playerId) ?? -1];
+    const opponentFieldAfter = this.fields[opponentId];
     // console.table(opponentFieldAfter);
-    if (shotShipId == null) return 'miss';
+    if (shotShipId == null) {
+      this.attackerId = opponentId;
+      return 'miss';
+    }
     if (opponentFieldAfter && !opponentFieldAfter.flat().includes(shotShipId))
       return 'killed';
     return 'shot';
