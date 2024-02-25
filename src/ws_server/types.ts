@@ -7,6 +7,12 @@ export type SocketCommand = {
 };
 
 export type CommandHandler = (data: any, socket: WebSocket) => void;
+export type BotCommandHandler = (
+  data: any,
+  gameId: number,
+  botId: number,
+  socket: WebSocket,
+) => void;
 
 export type ShipData = {
   position: { x: number; y: number };

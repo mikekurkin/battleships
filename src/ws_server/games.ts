@@ -60,8 +60,8 @@ class BattleshipsGame {
       .map(([playerId, field]) => {
         const fieldSet = new Set(field.flat());
         if (
-          fieldSet.size == 3 &&
-          ['x', 'o', null].every((e) => fieldSet.has(e))
+          Array.from(fieldSet).filter((e) => !['x', 'o', null].includes(e))
+            .length == 0
         ) {
           return this.opponent(playerId);
         } else return null;
@@ -102,6 +102,11 @@ class BattleshipsGame {
     [playerId: string]: string[]; //stringified { x: number; y: number }
   };
   placeShips(playerId: number, ships: ShipData[]) {
+    if (
+      JSON.stringify(ships.map((ship) => ship.length).sort()) !=
+      JSON.stringify([4, 3, 3, 2, 2, 2, 1, 1, 1, 1].sort())
+    )
+      return;
     this.ships[playerId] = ships;
   }
   attack(
@@ -161,7 +166,10 @@ class GamesDB {
   }
 
   create(initiatorId: number) {
-    this.entries.push(new BattleshipsGame(this.entries.length, initiatorId));
+    return (
+      this.entries.push(new BattleshipsGame(this.entries.length, initiatorId)) -
+      1
+    );
   }
 
   getById(id: number) {

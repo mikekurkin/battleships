@@ -14,6 +14,11 @@ class UsersDB {
   constructor() {
     this.entries = {};
     this.userSockets = [];
+    this.entries['Bot'] = {
+      name: 'Bot',
+      index: 0,
+      password_hash: 'undefined',
+    };
   }
 
   private static hashPassword = (password: string) => {
@@ -37,7 +42,7 @@ class UsersDB {
     const socketsToSend = this.userSockets
       .filter((us) => (id == 'all' ? true : id == us.id))
       .map((us) => us.socket);
-
+    console.log(`${data} -> ${id}`);
     socketsToSend.forEach((socket) => socket.send(data));
   }
 
@@ -80,6 +85,10 @@ class UsersDB {
       errorText: '',
     };
   }
+
+  addBotSocket = (socket: WebSocket) => {
+    this.userSockets.push({ id: 0, socket });
+  };
 }
 
 export const users = new UsersDB();

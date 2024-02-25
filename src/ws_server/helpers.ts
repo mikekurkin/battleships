@@ -1,5 +1,16 @@
 import { ShipData } from './types';
 
+export const shipCells = (ship: ShipData): { x: number; y: number }[] => {
+  return Array(ship.length)
+    .fill('')
+    .map((_, i) => {
+      return {
+        x: ship.position.x + (ship.direction ? 0 : i),
+        y: ship.position.y + (ship.direction ? i : 0),
+      };
+    });
+};
+
 export const shipNeighborCells = (
   ship: ShipData,
 ): { x: number; y: number }[] => {

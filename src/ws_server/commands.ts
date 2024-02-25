@@ -1,11 +1,12 @@
 import { WebSocket } from 'ws';
 import { CommandHandler, ShipData } from './types';
 
+import { Bot } from './bot';
 import { games } from './games';
 import { countOccurences } from './helpers';
 import { users } from './users';
 
-const formResponse = (type: string, data: Object) => {
+export const formResponse = (type: string, data: Object) => {
   return JSON.stringify({ type, data: JSON.stringify(data), id: 0 });
 };
 
@@ -157,6 +158,18 @@ const update_winners = (playerId?: number) => {
   );
 };
 
+const single_play = async (_: {}, socket: WebSocket) => {
+  const userId = users.findIdBySocket(socket);
+  if (userId == undefined) return;
+  const roomId = games.create(userId);
+  new Bot(roomId);
+};
+
+const reg_bot = (data: { roomId: number }, socket: WebSocket) => {
+  users.addBotSocket(socket);
+  add_user_to_room({ indexRoom: data.roomId }, socket);
+};
+
 export const commands: { [cmd: string]: CommandHandler } = {
   reg,
   create_room,
@@ -164,4 +177,6 @@ export const commands: { [cmd: string]: CommandHandler } = {
   add_ships,
   attack,
   randomAttack,
+  single_play,
+  reg_bot,
 };
