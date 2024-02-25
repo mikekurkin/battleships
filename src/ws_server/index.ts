@@ -10,7 +10,7 @@ export const wsServer = {
       ws.on('error', console.error);
 
       ws.on('message', (data) => {
-        console.log('->', data.toString());
+        if (process.env.DEBUG) console.log('->', data.toString());
         const request: SocketCommand = JSON.parse(data.toString());
         const handler = commands[request.type];
         if (handler) {

@@ -17,7 +17,7 @@ export class Bot {
       this.ws.send(formResponse('reg_bot', { roomId }));
     });
     this.ws.on('message', (data) => {
-      console.log('bot:', data.toString());
+      if (process.env.DEBUG) console.log('bot: ->', data.toString());
       const request: SocketCommand = JSON.parse(data.toString());
       const handler = botCommands[request.type];
       if (handler) {
@@ -104,8 +104,6 @@ const add_ships = (
         break;
       }
     }
-    console.log(ships);
-    console.log(shipsToPlace);
   }
 
   ws.send(

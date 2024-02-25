@@ -42,7 +42,7 @@ class UsersDB {
     const socketsToSend = this.userSockets
       .filter((us) => (id == 'all' ? true : id == us.id))
       .map((us) => us.socket);
-    console.log(`${data} -> ${id}`);
+    if (process.env.DEBUG) console.log(`${data} -> ${id}`);
     socketsToSend.forEach((socket) => socket.send(data));
   }
 
